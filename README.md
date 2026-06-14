@@ -13,8 +13,8 @@ Every day at 23:00
        │
        ▼
   📋 Planner Function
-       ├── Fetches tomorrow's electricity prices (Energi Data Service)
-       ├── Fetches solar forecasts (OpenMeteo + ForecastSolar)
+       ├── Fetches tomorrow's electricity prices
+       ├── Fetches tomorrow's solar forecasts
        └── Schedules optimized actions on Azure Service Bus
                           │
                           ▼ (at scheduled time)
@@ -24,12 +24,11 @@ Every day at 23:00
 
 ### 🔋 What Gets Optimized
 
-| Scenario                       | Action                                      |
-| ------------------------------ | ------------------------------------------- |
-| Electricity price is **cheap** | Limit grid export, charge battery from grid |
-| Solar forecast is **high**     | Enable grid-first mode (sell/use solar)     |
-| Solar forecast is **low**      | Disable grid-first mode, prioritize grid    |
-| Morning peak hours             | Grid-first mode for configurable duration   |
+| Scenario                       | Action                                |
+| ------------------------------ | ------------------------------------- |
+| Electricity price is **cheap** | Limit export to the grid              |
+| Solar forecast is **high**     | Enable grid-first mode in the morning |
+| Solar forecast is **low**      | Disable grid-first mode               |
 
 ---
 
@@ -112,13 +111,13 @@ Provisioned via Bicep:
        "SOLAR_OUTPUT_THRESHOLD_KWH": "20", // min forecast (kWh) to enable grid-first mode
        "SOLAR_PANEL_KWP": "5.0", // installed capacity
        "SOLAR_PANEL_TILT": "35", // tilt angle in degrees
-       "SOLAR_PANEL_AZIMUTH": "0", // 0 = south
+       "SOLAR_PANEL_AZIMUTH": "180", // 180 = south
        "SOLAR_PERFORMANCE_RATIO": "0.90", // system efficiency ratio
 
        // Grid-first morning window
        "GRID_FIRST_MINUTES_AFTER_SUNRISE": "60", // minutes after sunrise to start the grid-first window
        "GRID_FIRST_SUNRISE_FALLBACK_HOUR": "6", // UTC hour used as sunrise if the sunrise service is unavailable
-       "GRID_FIRST_MIN_MINUTES": "60", // minimum window duration
+       "GRID_FIRST_MIN_MINUTES": "0", // minimum window duration
        "GRID_FIRST_MAX_MINUTES": "360", // maximum window duration
 
        // Forecast providers (provide at least one)
@@ -157,11 +156,3 @@ Provisioned via Bicep:
 | [Solcast](https://solcast.com/)                          | Solar production forecast (`SOLCAST_API_KEY`)              | Yes              |
 | [Sunrise-Sunset](https://sunrise-sunset.org/api)         | Sunrise time for grid-first window scheduling              | No               |
 | [Growatt API](https://www.growatt.com/)                  | Inverter control (export limits, charge/discharge windows) | Yes              |
-
----
-
-## 🔒 Security
-
-- Secrets are stored in **Azure Key Vault** — never in code or config files
-- The Function App authenticates to Azure services using a **Managed Identity** (no stored credentials)
-- `DRY_RUN=true` is the safe default — no inverter commands are sent until explicitly enabled
