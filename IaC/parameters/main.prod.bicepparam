@@ -19,7 +19,7 @@ param additionalAppSettings = {
   SOLAR_PANEL_TILT: '30'
   SOLAR_PANEL_AZIMUTH: '177'
   SOLAR_PERFORMANCE_RATIO: '0.95'
-  DRY_RUN: 'true'
+  DRY_RUN: 'false'
   GROWATT_DEVICE_SERIAL_NUMBER: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=growatt-device-serial-number)'
   GROWATT_API_KEY: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=growatt-api-key)'
   GROWATT_DISCHARGE_POWER_PERCENT: '50'
