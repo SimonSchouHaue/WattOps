@@ -1,33 +1,77 @@
-from __future__ import annotations
+import logging
+from datetime import datetime
 
-from src.utils.config import Settings
-from src.services.growatt_api import GrowattClient
-from src.models.models import PlannedAction
+from utils.config import Settings
+from services.growatt.growatt_service import GrowattService
+from models.result import Result
+from models.planned_action import PlannedAction, CommandName
+
+logger = logging.getLogger("wattops.executor")
 
 
-def apply_planned_action(
-    action: PlannedAction, settings: Settings, growatt_api_key: str
-) -> None:
-    client = GrowattClient(
-        api_base_url=settings.growatt_api_base_url,
-        api_key=growatt_api_key,
-        dry_run=settings.growatt_dry_run,
-    )
+def apply_planned_action(action: PlannedAction, settings: Settings) -> Result[None]:
+    growatt_api_key = settings.growatt_api_key
+    device_sn = settings.growatt_device_serial_number
 
-    if action.command.name == "set_export_limit":
-        client.set_export_limit(
-            site_id=action.target.site_id,
-            device_id=action.target.device_id,
-            percent=action.command.value,
-        )
-        return
+    growatt_service = GrowattService(api_key=growatt_api_key, device_sn=device_sn)
 
-    if action.command.name == "set_operating_mode":
-        client.set_operating_mode(
-            site_id=action.target.site_id,
-            device_id=action.target.device_id,
-            mode=str(action.command.value),
-        )
-        return
+    match action.command.name:
+        case CommandName.SET_EXPORT_LIMIT:
+            if settings.dry_run:
+                logger.info(
+                    f"DRY RUN set_export_limit on device: {device_sn} percent={action.command.value}"
+                )
+                return Result.ok(None)
+            return growatt_service.set_export_limit(percent=action.command.value)
 
-    raise ValueError(f"Unsupported command: {action.command.name}")
+        case CommandName.DISABLE_EXPORT_LIMIT:
+            if settings.dry_run:
+                logger.info(f"DRY RUN disable_export_limit on device: {device_sn}")
+                return Result.ok(None)
+            return growatt_service.disable_export_limit()
+
+        case CommandName.SET_AC_CHARGE_WINDOW:
+            start_time = datetime.fromisoformat(action.window.start).strftime("%H:%M")
+            end_time = datetime.fromisoformat(action.window.end).strftime("%H:%M")
+            if settings.dry_run:
+                logger.info(
+                    f"DRY RUN set_ac_charge_window on device: {device_sn} "
+                    f"start={start_time} end={end_time} power=100% stop_soc=100%"
+                )
+                return Result.ok(None)
+            return growatt_service.set_ac_charge_window(
+                start_time=start_time, end_time=end_time
+            )
+
+        case CommandName.DISABLE_AC_CHARGE_WINDOW:
+            if settings.dry_run:
+                logger.info(f"DRY RUN disable_ac_charge_window on device: {device_sn}")
+                return Result.ok(None)
+            return growatt_service.disable_ac_charge_window()
+
+        case CommandName.ENABLE_GRID_FIRST:
+            start_time = datetime.fromisoformat(action.window.start).strftime("%H:%M")
+            end_time = datetime.fromisoformat(action.window.end).strftime("%H:%M")
+            if settings.dry_run:
+                logger.info(
+                    f"DRY RUN enable_grid_first on device: {device_sn} "
+                    f"start={start_time} end={end_time} "
+                    f"discharge_power={settings.growatt_discharge_power_percent}% "
+                    f"stop_soc={settings.growatt_stop_soc_percent}%"
+                )
+                return Result.ok(None)
+            return growatt_service.set_ac_discharge_window(
+                start_time=start_time,
+                end_time=end_time,
+                discharge_power_percent=settings.growatt_discharge_power_percent,
+                stop_soc_percent=settings.growatt_stop_soc_percent,
+            )
+
+        case CommandName.DISABLE_GRID_FIRST:
+            if settings.dry_run:
+                logger.info(f"DRY RUN disable_grid_first on device: {device_sn}")
+                return Result.ok(None)
+            return growatt_service.disable_ac_discharge_window()
+
+        case _:
+            return Result.fail(f"Unsupported command: {action.command.name}")

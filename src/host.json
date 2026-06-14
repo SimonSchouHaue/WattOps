@@ -5,6 +5,14 @@
     "version": "[4.*, 5.0.0)"
   },
   "logging": {
+    "logLevel": {
+      "default": "Error",
+      "Host.Results": "Information",
+      "Function.planner.User": "Information",
+      "Function.planner": "Information",
+      "Function.executor.User": "Information",
+      "Function.executor": "Information"
+    },
     "applicationInsights": {
       "samplingSettings": {
         "isEnabled": true,

@@ -1,0 +1,41 @@
+name: Deploy IaC
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "IaC/**"
+      - .github/workflows/deploy-iac.yml
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy IaC to prod
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Bicep
+        uses: azure/cli@v3
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment sub create \
+              --name wattops-prod \
+              --location swedencentral \
+              --template-file IaC/main.bicep \
+              --parameters IaC/parameters/main.prod.bicepparam
