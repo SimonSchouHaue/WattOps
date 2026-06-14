@@ -61,33 +61,33 @@ def planner(timer: func.TimerRequest) -> None:
             f"because of {action.reason.type}: {action.reason.details}"
         )
 
-    # publish_scheduled_actions(
-    #     actions,
-    #     settings.service_bus_fully_qualified_namespace,
-    #     settings.planner_queue_name,
-    # )
+    publish_scheduled_actions(
+        actions,
+        settings.service_bus_fully_qualified_namespace,
+        settings.planner_queue_name,
+    )
 
 
-# @app.function_name(name="executor")
-# @app.service_bus_queue_trigger(
-#     arg_name="msg",
-#     queue_name="planed-commands",
-#     connection="ServiceBusConnection",
-# )
-# def executor(msg: func.ServiceBusMessage) -> None:
-#     settings = Settings.from_env()
+@app.function_name(name="executor")
+@app.service_bus_queue_trigger(
+    arg_name="msg",
+    queue_name="planed-commands",
+    connection="ServiceBusConnection",
+)
+def executor(msg: func.ServiceBusMessage) -> None:
+    settings = Settings.from_env()
 
-#     payload = msg.get_body().decode("utf-8")
-#     action = PlannedAction.from_message(json.loads(payload))
+    payload = msg.get_body().decode("utf-8")
+    action = PlannedAction.from_message(json.loads(payload))
 
-#     planed_action_result = apply_planned_action(action, settings)
+    planed_action_result = apply_planned_action(action, settings)
 
-#     if not planed_action_result.success:
-#         logger.error(
-#             f"Executor failed applying command '{action.command.name}' on device '{settings.growatt_device_serial_number}': {planed_action_result.error}"
-#         )
-#         return
-#     if not settings.dry_run:
-#         logger.info(
-#             f"Executor applied command '{action.command.name}' for device '{settings.growatt_device_serial_number}' successfully"
-#         )
+    if not planed_action_result.success:
+        logger.error(
+            f"Executor failed applying command '{action.command.name}' on device '{settings.growatt_device_serial_number}': {planed_action_result.error}"
+        )
+        return
+    if not settings.dry_run:
+        logger.info(
+            f"Executor applied command '{action.command.name}' for device '{settings.growatt_device_serial_number}' successfully"
+        )

@@ -48,7 +48,7 @@ class Settings:
                 os.getenv("GRID_FIRST_MINUTES_AFTER_SUNRISE", "60")
             ),
             grid_first_sunrise_fallback_hour=int(
-                os.getenv("GRID_FIRST_SUNRISE_FALLBACK_HOUR", "7")
+                os.getenv("GRID_FIRST_SUNRISE_FALLBACK_HOUR", "5")
             ),
             growatt_api_key=os.getenv("GROWATT_API_KEY", ""),
             growatt_device_serial_number=os.getenv("GROWATT_DEVICE_SERIAL_NUMBER", ""),
