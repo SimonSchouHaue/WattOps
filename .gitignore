@@ -41,3 +41,5 @@ __tablestorage__/
 .env
 .env.*
 !.env.example
+
+scripts/
