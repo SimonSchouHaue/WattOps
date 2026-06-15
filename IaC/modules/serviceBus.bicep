@@ -29,7 +29,7 @@ resource serviceBusQueues 'Microsoft.ServiceBus/namespaces/queues@2024-01-01' = 
     defaultMessageTimeToLive: 'P1D' // 1 day
     deadLetteringOnMessageExpiration: true
     duplicateDetectionHistoryTimeWindow: 'PT10M' // 10 minutes
-    maxDeliveryCount: 10
+    maxDeliveryCount: 3
     enablePartitioning: false
     enableExpress: false
   }
