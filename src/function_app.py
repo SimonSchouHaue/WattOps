@@ -26,7 +26,7 @@ logger = logging.getLogger("wattops")
 
 @app.function_name(name="planner")
 @app.timer_trigger(
-    schedule="0 0 23 * * *", arg_name="timer", run_on_startup=True, use_monitor=True
+    schedule="0 0 23 * * *", arg_name="timer", run_on_startup=False, use_monitor=True
 )
 def planner(timer: func.TimerRequest) -> None:
     _ = timer
