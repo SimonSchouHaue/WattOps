@@ -63,8 +63,8 @@ def apply_planned_action(action: PlannedAction, settings: Settings) -> Result[No
             return growatt_service.set_ac_discharge_window(
                 start_time=start_time,
                 end_time=end_time,
-                discharge_power_percent=settings.growatt_discharge_power_percent,
-                stop_soc_percent=settings.growatt_stop_soc_percent,
+                discharge_power=settings.growatt_discharge_power_percent,
+                stop_soc=settings.growatt_stop_soc_percent,
             )
 
         case CommandName.DISABLE_GRID_FIRST:

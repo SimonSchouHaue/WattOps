@@ -62,7 +62,7 @@ class GrowattService:
         self,
         start_time: str,
         end_time: str,
-        charge_power: int = 100,
+        charge_power: int = 50,
         stop_soc: int = 90,
     ) -> Result[None]:
         """Schedule grid → battery charging in a time window.
@@ -120,8 +120,8 @@ class GrowattService:
         self,
         start_time: str,
         end_time: str,
-        discharge_power: int = 100,
-        stop_soc: int = 15,
+        discharge_power: int = 50,
+        stop_soc: int = 25,
     ) -> Result[None]:
         """Schedule battery → grid/load discharging in a time window.
 
