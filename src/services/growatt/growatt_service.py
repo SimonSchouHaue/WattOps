@@ -26,7 +26,7 @@ class GrowattService:
             self._api.sph_write_parameter(
                 self.device_sn,
                 "backflow_setting",
-                ["1", str(int(percent))],
+                ["1", str(percent)],
             )
             return Result.ok(None)
         except GrowattV1ApiError as e:

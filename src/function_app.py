@@ -89,5 +89,5 @@ def executor(msg: func.ServiceBusMessage) -> None:
         return
     if not settings.dry_run:
         logger.info(
-            f"Executor applied command '{action.command.name}' for device '{settings.growatt_device_serial_number}' successfully"
+            f"Executor applied command '{action.command.name}' with value '{action.command.value}' for device '{settings.growatt_device_serial_number}' successfully"
         )
