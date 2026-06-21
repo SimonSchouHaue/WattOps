@@ -159,3 +159,16 @@ class GrowattService:
             return Result.ok(None)
         except GrowattV1ApiError as e:
             return Result.fail(f"API error details: {e.error_msg} {e.error_code}")
+
+    def get_battery_soc(self) -> Result[int]:
+        """Get current battery state of charge (SOC) as a percentage."""
+        try:
+            energy = self._api.sph_energy(self.device_sn)
+
+            soc = energy.get("soc")
+            if soc is None:
+                return Result.fail("Missing 'soc' key in API response value")
+
+            return Result.ok(int(soc))
+        except GrowattV1ApiError as e:
+            return Result.fail(f"API error details: {e.error_msg} {e.error_code}")
