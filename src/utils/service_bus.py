@@ -1,21 +1,13 @@
-from datetime import datetime, timezone
 import json
 import logging
 
+from datetime import datetime
 from azure.identity import DefaultAzureCredential
 from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
 from models.planned_action import PlannedAction
-from utils.config import Settings
 
 logger = logging.getLogger("wattops.utils.service_bus")
-
-
-def parse_iso_utc(value: str) -> datetime:
-    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
 
 
 def publish_scheduled_actions(
@@ -31,7 +23,8 @@ def publish_scheduled_actions(
             for action in actions:
                 msg = ServiceBusMessage(json.dumps(action.to_message()))
 
-                scheduled_for = parse_iso_utc(action.window.start)
-                msg.scheduled_enqueue_time_utc = scheduled_for
+                msg.scheduled_enqueue_time_utc = datetime.fromisoformat(
+                    action.scheduled_at
+                )
 
                 sender.send_messages(msg)
