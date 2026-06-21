@@ -34,10 +34,11 @@ class Reason:
 
 @dataclass(frozen=True)
 class PlannedAction:
+    correlation_id: str
     command: Command
     window: Window
     reason: Reason
-    correlation_id: str
+    scheduled_at: str
 
     def to_message(self) -> dict:
         command_name = (
@@ -61,6 +62,7 @@ class PlannedAction:
                 "type": self.reason.type,
                 "details": self.reason.details,
             },
+            "scheduled_at": self.scheduled_at,
             "created_at": utc_now_iso(),
         }
 
@@ -82,4 +84,5 @@ class PlannedAction:
                 details=message["reason"].get("details", {}),
             ),
             correlation_id=message.get("correlation_id", "none"),
+            scheduled_at=message["scheduled_at"],
         )

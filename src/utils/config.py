@@ -38,6 +38,7 @@ class Settings:
     solar_performance_ratio: float
     solcast_api_key: str
     solcast_resource_id: str
+    local_timezone: str
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -77,4 +78,5 @@ class Settings:
             solar_performance_ratio=float(os.getenv("SOLAR_PERFORMANCE_RATIO", "0.85")),
             solcast_api_key=os.getenv("SOLCAST_API_KEY", ""),
             solcast_resource_id=os.getenv("SOLCAST_RESOURCE_ID", ""),
+            local_timezone=os.getenv("LOCAL_TIMEZONE", "UTC"),
         )

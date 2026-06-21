@@ -1,5 +1,6 @@
 import logging
 from datetime import date, datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from utils.config import Settings
 from models.result import Result
@@ -23,6 +24,7 @@ class Planner:
         self.price_provider = price_provider
         self.forecast_providers = forecast_providers
         self.sunrise_provider = sunrise_provider
+        self.timezone = ZoneInfo(settings.local_timezone)
 
     def create_plan(self, planning_date: date) -> Result[list[PlannedAction]]:
         correlation_id = f"plan-{planning_date.isoformat()}"
@@ -84,8 +86,10 @@ class Planner:
                         unit="mode",
                     ),
                     window=Window(
-                        start=midnight.isoformat(),
-                        end=(midnight + timedelta(days=1)).isoformat(),
+                        start=midnight.astimezone(self.timezone).isoformat(),
+                        end=(midnight + timedelta(days=1))
+                        .astimezone(self.timezone)
+                        .isoformat(),
                     ),
                     reason=Reason(
                         type="low_solar_forecast",
@@ -95,6 +99,7 @@ class Planner:
                         },
                     ),
                     correlation_id=correlation_id,
+                    scheduled_at=midnight.isoformat(),
                 )
             )
 
@@ -141,7 +146,8 @@ class Planner:
                     unit="percent",
                 ),
                 window=Window(
-                    start=window_start.isoformat(), end=window_end.isoformat()
+                    start=window_start.astimezone(self.timezone).isoformat(),
+                    end=window_end.astimezone(self.timezone).isoformat(),
                 ),
                 reason=Reason(
                     type="low_price",
@@ -151,6 +157,7 @@ class Planner:
                     },
                 ),
                 correlation_id=correlation_id,
+                scheduled_at=window_start.isoformat(),
             ),
             PlannedAction(
                 command=Command(
@@ -159,8 +166,8 @@ class Planner:
                     unit="percent",
                 ),
                 window=Window(
-                    start=window_end.isoformat(),
-                    end=end_of_day.isoformat(),
+                    start=window_end.astimezone(self.timezone).isoformat(),
+                    end=end_of_day.astimezone(self.timezone).isoformat(),
                 ),
                 reason=Reason(
                     type="high_price",
@@ -170,6 +177,7 @@ class Planner:
                     },
                 ),
                 correlation_id=correlation_id,
+                scheduled_at=window_end.isoformat(),
             ),
         ]
 
@@ -249,7 +257,10 @@ class Planner:
                 value="enable_grid_first",
                 unit="mode",
             ),
-            window=Window(start=start.isoformat(), end=end.isoformat()),
+            window=Window(
+                start=start.astimezone(self.timezone).isoformat(),
+                end=end.astimezone(self.timezone).isoformat(),
+            ),
             reason=Reason(
                 type="high_solar_forecast",
                 details={
@@ -259,4 +270,5 @@ class Planner:
                 },
             ),
             correlation_id=correlation_id,
+            scheduled_at=start.isoformat(),
         )
