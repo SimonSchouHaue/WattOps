@@ -128,16 +128,16 @@ class GrowattService:
         Args:
             start_time:      Window start in "HH:MM" format.
             end_time:        Window end in "HH:MM" format.
-            discharge_power: Discharge power as % of rated (0-100).
-            stop_soc:        Stop discharging at this battery SOC % (0-100).
+            discharge_power: Discharge power as % of rated (1-100).
+            stop_soc:        Stop discharging at this battery SOC % (12-100).
         """
-        if not (0 <= discharge_power <= 100):
+        if not (1 <= discharge_power <= 100):
             return Result.fail(
-                f"Discharge power percent must be between 0 and 100, got {discharge_power}"
+                f"Discharge power percent must be between 1 and 100, got {discharge_power}"
             )
-        if not (10 <= stop_soc <= 100):
+        if not (12 <= stop_soc <= 100):
             return Result.fail(
-                f"Stop SOC percent must be between 10 and 100, got {stop_soc}"
+                f"Stop SOC percent must be between 12 and 100, got {stop_soc}"
             )
         try:
             sh, sm = (int(x) for x in start_time.split(":"))

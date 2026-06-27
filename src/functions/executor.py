@@ -48,7 +48,11 @@ def apply_planned_action(action: PlannedAction, settings: Settings) -> Result[No
                 start_time=start_time,
                 end_time=end_time,
                 discharge_power=settings.growatt_discharge_power_percent,
-                stop_soc=settings.growatt_stop_soc_percent,
+                stop_soc=(
+                    int(action.command.value)
+                    if action.command.value is not None
+                    else settings.growatt_stop_soc_percent
+                ),
             )
 
         case CommandName.DISABLE_GRID_FIRST:

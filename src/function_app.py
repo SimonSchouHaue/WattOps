@@ -57,7 +57,7 @@ def planner(timer: func.TimerRequest) -> None:
 
     for action in actions:
         logger.info(
-            f"Planner created action '{action.command.name}' for window {action.window.start} - {action.window.end} "
+            f"Planner created action '{action.command.name}' for window {action.window.start} - {action.window.end} with value '{action.command.value}' {action.command.unit} "
             f"because of {action.reason.type}: {action.reason.details}"
         )
 

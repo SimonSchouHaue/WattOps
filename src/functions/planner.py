@@ -68,22 +68,22 @@ class Planner:
             )
         )
 
-        grid_first_action = self._build_grid_first_action(
+        grid_first_actions = self._build_grid_first_action(
             planning_date=planning_date,
             forecast_kwh=forecast_kwh,
             prices=electricity_prices,
             correlation_id=correlation_id,
         )
-        if grid_first_action:
-            actions.append(grid_first_action)
+        if grid_first_actions:
+            actions.extend(grid_first_actions)
         else:
             midnight = datetime.combine(planning_date, time(0, 0, tzinfo=timezone.utc))
             actions.append(
                 PlannedAction(
                     command=Command(
                         name=CommandName.DISABLE_GRID_FIRST,
-                        value="disable_grid_first",
-                        unit="mode",
+                        value=0,
+                        unit="disable",
                     ),
                     window=Window(
                         start=midnight.astimezone(self.timezone).isoformat(),
@@ -172,7 +172,7 @@ class Planner:
                 reason=Reason(
                     type="high_price",
                     details={
-                        "highest_price_in_window": trigger_price,
+                        "enable_export_trigger_price": trigger_price,
                         "threshold_price": self.settings.price_export_threshold_dkk_kwh,
                     },
                 ),
@@ -187,12 +187,12 @@ class Planner:
         forecast_kwh: float,
         prices: list[tuple[datetime, float]],
         correlation_id: str,
-    ) -> PlannedAction | None:
+    ) -> list[PlannedAction]:
         if forecast_kwh <= self.settings.solar_output_threshold_kwh:
             logger.info(
                 f"Forecast kWh {forecast_kwh:.1f} is below threshold {self.settings.solar_output_threshold_kwh:.1f}, skipping grid-first action"
             )
-            return None
+            return []
 
         # Duration scales with expected overproduction while staying within configured bounds.
         overflow_kwh = forecast_kwh - self.settings.solar_output_threshold_kwh
@@ -245,30 +245,73 @@ class Planner:
                 f"Grid-first window capped at {end.isoformat()} due to price below threshold"
             )
 
+        result_actions: list[PlannedAction] = []
+
         if end <= start:
             logger.info(
                 "Grid-first window collapsed due to immediate high price, skipping"
             )
-            return None
+        else:
+            result_actions.append(
+                PlannedAction(
+                    command=Command(
+                        name=CommandName.ENABLE_GRID_FIRST,
+                        value=30,
+                        unit="discharge_stop_soc_percent",
+                    ),
+                    window=Window(
+                        start=start.astimezone(self.timezone).isoformat(),
+                        end=end.astimezone(self.timezone).isoformat(),
+                    ),
+                    reason=Reason(
+                        type="high_solar_forecast",
+                        details={
+                            "forecast_kwh": forecast_kwh,
+                            "threshold_kwh": self.settings.solar_output_threshold_kwh,
+                            "duration_minutes": duration_minutes,
+                        },
+                    ),
+                    correlation_id=correlation_id,
+                    scheduled_at=(start - timedelta(hours=1)).isoformat(),
+                )
+            )
 
-        return PlannedAction(
-            command=Command(
-                name=CommandName.ENABLE_GRID_FIRST,
-                value="enable_grid_first",
-                unit="mode",
-            ),
-            window=Window(
-                start=start.astimezone(self.timezone).isoformat(),
-                end=end.astimezone(self.timezone).isoformat(),
-            ),
-            reason=Reason(
-                type="high_solar_forecast",
-                details={
-                    "forecast_kwh": forecast_kwh,
-                    "threshold_kwh": self.settings.solar_output_threshold_kwh,
-                    "duration_minutes": duration_minutes,
-                },
-            ),
-            correlation_id=correlation_id,
-            scheduled_at=start.isoformat(),
-        )
+        # Enable grid-first during high-price spikes
+        avg_price = sum(p for _, p in prices) / len(prices) if prices else 0
+        high_price_threshold = avg_price * self.settings.spike_threshold_multiplier
+        high_price_entries = [
+            (dt, price) for dt, price in prices if price > high_price_threshold
+        ]
+        high_price_slots = sorted(dt for dt, _ in high_price_entries)
+        if len(high_price_slots) >= 2:
+            hp_start = high_price_slots[0]
+            hp_end = high_price_slots[-1] + timedelta(minutes=15)
+            max_price_in_window = max(price for _, price in high_price_entries)
+            logger.info(
+                f"High price peak at {max_price_in_window:.4f} DKK/kWh, {len(high_price_slots)} price slots with {self.settings.spike_threshold_multiplier} times over average price: {avg_price:.4f} DKK/kWh)"
+            )
+            result_actions.append(
+                PlannedAction(
+                    command=Command(
+                        name=CommandName.ENABLE_GRID_FIRST,
+                        value=50,
+                        unit="discharge_stop_soc_percent",
+                    ),
+                    window=Window(
+                        start=hp_start.astimezone(self.timezone).isoformat(),
+                        end=hp_end.astimezone(self.timezone).isoformat(),
+                    ),
+                    reason=Reason(
+                        type="high_price_spike",
+                        details={
+                            "avg_price_dkk_kwh": avg_price,
+                            "high_price_dkk_kwh": max_price_in_window,
+                            "slots_above_threshold": len(high_price_slots),
+                        },
+                    ),
+                    correlation_id=correlation_id,
+                    scheduled_at=(hp_start - timedelta(hours=1)).isoformat(),
+                )
+            )
+
+        return result_actions

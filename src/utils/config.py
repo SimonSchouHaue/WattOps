@@ -36,6 +36,7 @@ class Settings:
     solar_panel_kwp: float
     solar_panel_tilt: int
     solar_performance_ratio: float
+    spike_threshold_multiplier: float
     solcast_api_key: str
     solcast_resource_id: str
     local_timezone: str
@@ -76,6 +77,9 @@ class Settings:
             solar_panel_kwp=float(os.getenv("SOLAR_PANEL_KWP", "5.0")),
             solar_panel_tilt=int(os.getenv("SOLAR_PANEL_TILT", "35")),
             solar_performance_ratio=float(os.getenv("SOLAR_PERFORMANCE_RATIO", "0.85")),
+            spike_threshold_multiplier=float(
+                os.getenv("SPIKE_THRESHOLD_MULTIPLIER", "3")
+            ),
             solcast_api_key=os.getenv("SOLCAST_API_KEY", ""),
             solcast_resource_id=os.getenv("SOLCAST_RESOURCE_ID", ""),
             local_timezone=os.getenv("LOCAL_TIMEZONE", "UTC"),
