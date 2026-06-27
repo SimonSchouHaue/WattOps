@@ -283,7 +283,11 @@ class Planner:
             (dt, price) for dt, price in prices if price > high_price_threshold
         ]
         high_price_slots = sorted(dt for dt, _ in high_price_entries)
-        if len(high_price_slots) >= 2:
+
+        # Only trigger if there are at least 2 consecutive high-price slots and the threshold is above 50 time the export threshold
+        if len(high_price_slots) >= 2 and high_price_threshold >= (
+            self.settings.price_export_threshold_dkk_kwh * 50
+        ):
             hp_start = high_price_slots[0]
             hp_end = high_price_slots[-1] + timedelta(minutes=15)
             max_price_in_window = max(price for _, price in high_price_entries)
