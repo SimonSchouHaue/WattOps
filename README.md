@@ -24,11 +24,12 @@ Every day at 23:00
 
 ### 🔋 What Gets Optimized
 
-| Scenario                       | Action                                |
-| ------------------------------ | ------------------------------------- |
-| Electricity price is **cheap** | Limit export to the grid              |
-| Solar forecast is **high**     | Enable grid-first mode in the morning |
-| Solar forecast is **low**      | Disable grid-first mode               |
+| Scenario                      | Action                                |
+| ----------------------------- | ------------------------------------- |
+| Electricity price is **low**  | Stop export to the grid               |
+| Electricity price is **High** | Start export to the grid              |
+| Solar forecast is **high**    | Enable grid-first mode in the morning |
+| Solar forecast is **low**     | Disable grid-first mode               |
 
 ---
 
