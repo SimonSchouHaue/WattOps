@@ -118,8 +118,6 @@ Provisioned via Bicep:
        // Grid-first morning window
        "GRID_FIRST_MINUTES_AFTER_SUNRISE": "60", // minutes after sunrise to start the grid-first window
        "GRID_FIRST_SUNRISE_FALLBACK_HOUR": "6", // UTC hour used as sunrise if the sunrise service is unavailable
-       "GRID_FIRST_MIN_MINUTES": "0", // minimum window duration
-       "GRID_FIRST_MAX_MINUTES": "360", // maximum window duration
 
        // Forecast providers (provide at least one)
        "PVNODE_API_KEY": "<your-pvnode-api-key>",

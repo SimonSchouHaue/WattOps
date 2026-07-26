@@ -9,10 +9,8 @@ param additionalAppSettings = {
   PLANNER_QUEUE_NAME: queueName
   PRICE_AREA: 'DK1'
   PRICE_STOP_EXPORT_THRESHOLD_DKK_KWH: '0.02'
-  PRICE_START_EXPORT_THRESHOLD_DKK_KWH: '1.5'
+  PRICE_START_EXPORT_THRESHOLD_DKK_KWH: '3.00'
   GRID_FIRST_MINUTES_AFTER_SUNRISE: '120'
-  GRID_FIRST_MIN_MINUTES: '0'
-  GRID_FIRST_MAX_MINUTES: '240'
   SOLAR_OUTPUT_THRESHOLD_KWH: '25'
   SOLAR_LATITUDE: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=solar-latitude)'
   SOLAR_LONGITUDE: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=solar-longitude)'

@@ -194,17 +194,13 @@ class Planner:
             )
             return []
 
-        # Duration scales with expected overproduction while staying within configured bounds.
+        # Duration scales with expected overproduction.
         overflow_kwh = forecast_kwh - self.settings.solar_output_threshold_kwh
 
         logger.info(
             f"Average forecast kWh: {forecast_kwh}, calculated overflow kWh: {overflow_kwh}"
         )
-        computed_minutes = int(overflow_kwh * 12)
-        duration_minutes = max(
-            self.settings.grid_first_min_minutes,
-            min(self.settings.grid_first_max_minutes, computed_minutes),
-        )
+        duration_minutes = int(overflow_kwh * 12)
 
         sunrise_result = self.sunrise_provider.get_sunrise(planning_date)
 
@@ -272,7 +268,7 @@ class Planner:
                         },
                     ),
                     correlation_id=correlation_id,
-                    scheduled_at=(start - timedelta(hours=1)).isoformat(),
+                    scheduled_at=(start - timedelta(minutes=5)).isoformat(),
                 )
             )
 
@@ -293,28 +289,45 @@ class Planner:
                 f"High price peak at {max_price_in_window:.4f} DKK/kWh, {len(high_price_slots)} price slots above threshold {self.settings.price_start_export_threshold_dkk_kwh:.4f} DKK/kWh"
             )
 
-            result_actions.append(
-                PlannedAction(
-                    command=Command(
-                        name=CommandName.ENABLE_GRID_FIRST,
-                        value=50,
-                        unit="discharge_stop_soc_percent",
-                    ),
-                    window=Window(
-                        start=hp_start.astimezone(self.timezone).isoformat(),
-                        end=hp_end.astimezone(self.timezone).isoformat(),
-                    ),
-                    reason=Reason(
-                        type="high_price",
-                        details={
-                            "high_price_dkk_kwh": max_price_in_window,
-                            "threshold_price_dkk_kwh": self.settings.price_start_export_threshold_dkk_kwh,
-                            "slots_above_threshold": len(high_price_slots),
-                        },
-                    ),
-                    correlation_id=correlation_id,
-                    scheduled_at=(hp_start - timedelta(hours=1)).isoformat(),
+            # Avoid overlapping with the high-solar-forecast window above by
+            # shortening the high-price window rather than the solar one.
+            solar_first_active = end > start
+            if solar_first_active and hp_start < end and hp_end > start:
+                if hp_start < start:
+                    hp_end = min(hp_end, start)
+                else:
+                    hp_start = max(hp_start, end)
+                logger.info(
+                    f"High-price window overlapped high-solar-forecast window, shortened to {hp_start.isoformat()} - {hp_end.isoformat()}"
                 )
-            )
+
+            if hp_end <= hp_start:
+                logger.info(
+                    "High-price grid-first window fully overlapped by high-solar-forecast window, skipping"
+                )
+            else:
+                result_actions.append(
+                    PlannedAction(
+                        command=Command(
+                            name=CommandName.ENABLE_GRID_FIRST,
+                            value=50,
+                            unit="discharge_stop_soc_percent",
+                        ),
+                        window=Window(
+                            start=hp_start.astimezone(self.timezone).isoformat(),
+                            end=hp_end.astimezone(self.timezone).isoformat(),
+                        ),
+                        reason=Reason(
+                            type="high_price",
+                            details={
+                                "high_price_dkk_kwh": max_price_in_window,
+                                "threshold_price_dkk_kwh": self.settings.price_start_export_threshold_dkk_kwh,
+                                "slots_above_threshold": len(high_price_slots),
+                            },
+                        ),
+                        correlation_id=correlation_id,
+                        scheduled_at=(hp_start - timedelta(minutes=5)).isoformat(),
+                    )
+                )
 
         return result_actions

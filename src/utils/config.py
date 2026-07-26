@@ -15,8 +15,6 @@ def str_to_bool(value: str, default: bool = False) -> bool:
 
 @dataclass(frozen=True)
 class Settings:
-    grid_first_max_minutes: int
-    grid_first_min_minutes: int
     grid_first_minutes_after_sunrise: int
     grid_first_sunrise_fallback_hour: int
     growatt_api_key: str
@@ -44,8 +42,6 @@ class Settings:
     @classmethod
     def from_env(cls) -> "Settings":
         return cls(
-            grid_first_max_minutes=int(os.getenv("GRID_FIRST_MAX_MINUTES", "360")),
-            grid_first_min_minutes=int(os.getenv("GRID_FIRST_MIN_MINUTES", "60")),
             grid_first_minutes_after_sunrise=int(
                 os.getenv("GRID_FIRST_MINUTES_AFTER_SUNRISE", "60")
             ),
