@@ -212,9 +212,9 @@ class Planner:
             return []
 
         battery_soc = soc_result.value
-        if battery_soc >= 25:
+        if battery_soc >= 65:
             logger.info(
-                f"Battery SOC {battery_soc}% is at or above threshold 25%, skipping AC charge action"
+                f"Battery SOC {battery_soc} % is at or above threshold 65 %, skipping AC charge action"
             )
             return []
 

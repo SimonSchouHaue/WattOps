@@ -18,9 +18,11 @@ class Settings:
     grid_first_minutes_after_sunrise: int
     grid_first_sunrise_fallback_hour: int
     growatt_api_key: str
+    growatt_charge_power_percent: int
     growatt_device_serial_number: str
     growatt_discharge_power_percent: int
-    growatt_stop_soc_percent: int
+    growatt_stop_discharge_soc_percent: int
+    growatt_stop_charge_soc_percent: int
     dry_run: bool
     planner_queue_name: str
     price_area: str
@@ -52,11 +54,19 @@ class Settings:
                 os.getenv("GRID_FIRST_SUNRISE_FALLBACK_HOUR", "5")
             ),
             growatt_api_key=os.getenv("GROWATT_API_KEY", ""),
+            growatt_charge_power_percent=int(
+                os.getenv("GROWATT_CHARGE_POWER_PERCENT", "50")
+            ),
             growatt_device_serial_number=os.getenv("GROWATT_DEVICE_SERIAL_NUMBER", ""),
             growatt_discharge_power_percent=int(
                 os.getenv("GROWATT_DISCHARGE_POWER_PERCENT", "50")
             ),
-            growatt_stop_soc_percent=int(os.getenv("GROWATT_STOP_SOC_PERCENT", "25")),
+            growatt_stop_discharge_soc_percent=int(
+                os.getenv("GROWATT_STOP_DISCHARGE_SOC_PERCENT", "25")
+            ),
+            growatt_stop_charge_soc_percent=int(
+                os.getenv("GROWATT_STOP_CHARGE_SOC_PERCENT", "90")
+            ),
             dry_run=str_to_bool(os.getenv("DRY_RUN", "true"), default=True),
             planner_queue_name=os.getenv("PLANNER_QUEUE_NAME", "planned-actions"),
             price_area=os.getenv("PRICE_AREA", "DK1"),
@@ -76,7 +86,7 @@ class Settings:
             ),
             solar_latitude=float(os.getenv("SOLAR_LATITUDE", "0.0")),
             solar_longitude=float(os.getenv("SOLAR_LONGITUDE", "0.0")),
-            solar_output_threshold_kwh=float(
+            solar_output_export_threshold_kwh=float(
                 os.getenv("SOLAR_OUTPUT_EXPORT_THRESHOLD_KWH", "20")
             ),
             solar_output_import_threshold_kwh=float(

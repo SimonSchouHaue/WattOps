@@ -100,8 +100,10 @@ Provisioned via Bicep:
        // Growatt inverter credentials
        "GROWATT_API_KEY": "<your-growatt-api-key>",
        "GROWATT_DEVICE_SERIAL_NUMBER": "<your-device-sn>",
+       "GROWATT_CHARGE_POWER_PERCENT": "50", // charge power during AC-charge window (%)
        "GROWATT_DISCHARGE_POWER_PERCENT": "50", // discharge power during grid-first window (%)
-       "GROWATT_STOP_SOC_PERCENT": "25", // stop discharging during grid-first when battery reaches this level (%)
+       "GROWATT_STOP_DISCHARGE_SOC_PERCENT": "25", // stop discharging during grid-first when battery reaches this level (%)
+       "GROWATT_STOP_CHARGE_SOC_PERCENT": "90", // stop AC-charging when battery reaches this level (%)
 
        // Electricity pricing
        "PRICE_AREA": "DK1", // price area, e.g. DK1 or DK2

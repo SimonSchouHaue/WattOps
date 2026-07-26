@@ -35,7 +35,10 @@ def apply_planned_action(action: PlannedAction, settings: Settings) -> Result[No
             start_time = datetime.fromisoformat(action.window.start).strftime("%H:%M")
             end_time = datetime.fromisoformat(action.window.end).strftime("%H:%M")
             return growatt_service.set_ac_charge_window(
-                start_time=start_time, end_time=end_time
+                start_time=start_time,
+                end_time=end_time,
+                charge_power=settings.growatt_charge_power_percent,
+                stop_soc=settings.growatt_stop_charge_soc_percent,
             )
 
         case CommandName.DISABLE_AC_CHARGE_WINDOW:
@@ -51,7 +54,7 @@ def apply_planned_action(action: PlannedAction, settings: Settings) -> Result[No
                 stop_soc=(
                     int(action.command.value)
                     if action.command.value is not None
-                    else settings.growatt_stop_soc_percent
+                    else settings.growatt_stop_discharge_soc_percent
                 ),
             )
 
