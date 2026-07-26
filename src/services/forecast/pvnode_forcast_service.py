@@ -39,9 +39,9 @@ class PVnodeForecastService(SolarForecastService):
 
             # 15-minute intervals: pv_watts (W) × 0.25 h = Wh per slot
             for entry in data["values"]:
-                dtm = entry.get("dtm", "")
-                if dtm.startswith(date_prefix):
-                    total_wh += float(entry.get("pv_watts", 0.0)) * 0.25
+                time_stamp = entry.get("timestamp", "")
+                if time_stamp.startswith(date_prefix):
+                    total_wh += float(entry.get("pv_power", 0.0)) * 0.25
                     found = True
 
             if not found:
