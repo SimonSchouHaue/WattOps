@@ -26,6 +26,7 @@ param additionalAppSettings = {
   GROWATT_API_KEY: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=growatt-api-key)'
   GROWATT_CHARGE_POWER_PERCENT: '50'
   GROWATT_DISCHARGE_POWER_PERCENT: '50'
+  GROWATT_START_CHARGE_SOC_PERCENT: '20'
   GROWATT_STOP_DISCHARGE_SOC_PERCENT: '30'
   GROWATT_STOP_CHARGE_SOC_PERCENT: '90'
   PVNODE_API_KEY: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=pvnode-api-key)'

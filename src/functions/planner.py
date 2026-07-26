@@ -212,9 +212,9 @@ class Planner:
             return []
 
         battery_soc = soc_result.value
-        if battery_soc >= 20:
+        if battery_soc >= self.settings.growatt_start_charge_soc_percent:
             logger.info(
-                f"Battery SOC {battery_soc} % is at or above threshold 20 %, skipping AC charge action"
+                f"Battery SOC {battery_soc} % is at or above threshold {self.settings.growatt_start_charge_soc_percent} %, skipping AC charge action"
             )
             return []
 
@@ -253,7 +253,7 @@ class Planner:
                     type="low_soc_low_forecast",
                     details={
                         "battery_soc_percent": battery_soc,
-                        "soc_threshold_percent": 25,
+                        "soc_threshold_percent": self.settings.growatt_start_charge_soc_percent,
                         "forecast_kwh": forecast_kwh,
                         "forecast_threshold_kwh": self.settings.solar_output_import_threshold_kwh,
                         "lowest_price_in_window": lowest_price,

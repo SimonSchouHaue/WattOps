@@ -21,6 +21,7 @@ class Settings:
     growatt_charge_power_percent: int
     growatt_device_serial_number: str
     growatt_discharge_power_percent: int
+    growatt_start_charge_soc_percent: int
     growatt_stop_discharge_soc_percent: int
     growatt_stop_charge_soc_percent: int
     dry_run: bool
@@ -60,6 +61,9 @@ class Settings:
             growatt_device_serial_number=os.getenv("GROWATT_DEVICE_SERIAL_NUMBER", ""),
             growatt_discharge_power_percent=int(
                 os.getenv("GROWATT_DISCHARGE_POWER_PERCENT", "50")
+            ),
+            growatt_start_charge_soc_percent=int(
+                os.getenv("GROWATT_START_CHARGE_SOC_PERCENT", "20")
             ),
             growatt_stop_discharge_soc_percent=int(
                 os.getenv("GROWATT_STOP_DISCHARGE_SOC_PERCENT", "25")

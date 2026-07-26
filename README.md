@@ -102,6 +102,7 @@ Provisioned via Bicep:
        "GROWATT_DEVICE_SERIAL_NUMBER": "<your-device-sn>",
        "GROWATT_CHARGE_POWER_PERCENT": "50", // charge power during AC-charge window (%)
        "GROWATT_DISCHARGE_POWER_PERCENT": "50", // discharge power during grid-first window (%)
+       "GROWATT_START_CHARGE_SOC_PERCENT": "20", // start AC-charging when battery is below this level (%)
        "GROWATT_STOP_DISCHARGE_SOC_PERCENT": "25", // stop discharging during grid-first when battery reaches this level (%)
        "GROWATT_STOP_CHARGE_SOC_PERCENT": "90", // stop AC-charging when battery reaches this level (%)
 
