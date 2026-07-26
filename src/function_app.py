@@ -9,6 +9,7 @@ from utils.config import Settings
 from utils.service_bus import publish_scheduled_actions
 from functions.executor import apply_planned_action
 from functions.planner import Planner
+from services.growatt.growatt_service import GrowattService
 from services.price.energi_data_price_service import EnergiDataPriceService
 from services.forecast.open_meteo_forecast_service import OpenMeteoForecastService
 from services.forecast.solcast_forecast_service import SolcastForecastService
@@ -42,6 +43,10 @@ def planner(timer: func.TimerRequest) -> None:
             PVnodeForecastService(settings),
         ],
         sunrise_provider=SunriseSunsetService(settings),
+        growatt_service=GrowattService(
+            api_key=settings.growatt_api_key,
+            device_sn=settings.growatt_device_serial_number,
+        ),
     )
     result = planner.create_plan(planning_date)
 

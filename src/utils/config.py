@@ -25,13 +25,15 @@ class Settings:
     planner_queue_name: str
     price_area: str
     price_start_export_threshold_dkk_kwh: float
+    price_start_import_threshold_dkk_kwh: float
     price_stop_export_threshold_dkk_kwh: float
     pvnode_api_key: str
     pvnode_site_id: str
     service_bus_fully_qualified_namespace: str
     solar_latitude: float
     solar_longitude: float
-    solar_output_threshold_kwh: float
+    solar_output_export_threshold_kwh: float
+    solar_output_import_threshold_kwh: float
     solar_panel_azimuth: int
     solar_panel_kwp: float
     solar_panel_tilt: int
@@ -61,6 +63,9 @@ class Settings:
             price_start_export_threshold_dkk_kwh=float(
                 os.getenv("PRICE_START_EXPORT_THRESHOLD_DKK_KWH", "1.5")
             ),
+            price_start_import_threshold_dkk_kwh=float(
+                os.getenv("PRICE_START_IMPORT_THRESHOLD_DKK_KWH", "0.1")
+            ),
             price_stop_export_threshold_dkk_kwh=float(
                 os.getenv("PRICE_STOP_EXPORT_THRESHOLD_DKK_KWH", "0.1")
             ),
@@ -72,7 +77,10 @@ class Settings:
             solar_latitude=float(os.getenv("SOLAR_LATITUDE", "0.0")),
             solar_longitude=float(os.getenv("SOLAR_LONGITUDE", "0.0")),
             solar_output_threshold_kwh=float(
-                os.getenv("SOLAR_OUTPUT_THRESHOLD_KWH", "20")
+                os.getenv("SOLAR_OUTPUT_EXPORT_THRESHOLD_KWH", "20")
+            ),
+            solar_output_import_threshold_kwh=float(
+                os.getenv("SOLAR_OUTPUT_IMPORT_THRESHOLD_KWH", "5")
             ),
             solar_panel_azimuth=int(os.getenv("SOLAR_PANEL_AZIMUTH", "0")),
             solar_panel_kwp=float(os.getenv("SOLAR_PANEL_KWP", "5.0")),

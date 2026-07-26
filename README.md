@@ -24,12 +24,13 @@ Every day at 23:00
 
 ### 🔋 What Gets Optimized
 
-| Scenario                      | Action                                |
-| ----------------------------- | ------------------------------------- |
-| Electricity price is **low**  | Stop export to the grid               |
-| Electricity price is **High** | Start export to the grid              |
-| Solar forecast is **high**    | Enable grid-first mode in the morning |
-| Solar forecast is **low**     | Disable grid-first mode               |
+| Scenario                                     | Action                                |
+| -------------------------------------------- | ------------------------------------- |
+| Electricity price is **low**                 | Stop export to the grid               |
+| Electricity price is **High**                | Start export to the grid              |
+| Solar forecast is **high**                   | Enable grid-first mode in the morning |
+| Solar forecast is **low**                    | Disable grid-first mode               |
+| Solar forecast is **low** and SOC is **low** | Start Import from the Grid            |
 
 ---
 
@@ -106,11 +107,13 @@ Provisioned via Bicep:
        "PRICE_AREA": "DK1", // price area, e.g. DK1 or DK2
        "PRICE_STOP_EXPORT_THRESHOLD_DKK_KWH": "0.10", // stop export when the spot price drops below the threshold (DKK/kWh)
        "PRICE_START_EXPORT_THRESHOLD_DKK_KWH": "1.50", // start export when the spot price rises above the threshold (DKK/kWh)
+       "PRICE_START_IMPORT_THRESHOLD_DKK_KWH": "0.10", // allow AC charging from grid when the spot price drops below the threshold (DKK/kWh)
 
        // Solar panel setup
        "SOLAR_LATITUDE": "55.0", // latitude where the solar panel is installed
        "SOLAR_LONGITUDE": "10.0", // longitude where the solar panel is installed
-       "SOLAR_OUTPUT_THRESHOLD_KWH": "20", // min forecast (kWh) to enable grid-first mode
+       "SOLAR_OUTPUT_EXPORT_THRESHOLD_KWH": "20", // min forecast (kWh) to enable grid-first mode
+       "SOLAR_OUTPUT_IMPORT_THRESHOLD_KWH": "5", // max forecast (kWh) below which grid AC-charging is allowed when battery SOC is low
        "SOLAR_PANEL_KWP": "5.0", // installed capacity
        "SOLAR_PANEL_TILT": "35", // tilt angle in degrees
        "SOLAR_PANEL_AZIMUTH": "180", // 180 = south

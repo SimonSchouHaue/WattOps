@@ -8,6 +8,7 @@ from models.planned_action import Command, CommandName, PlannedAction, Reason, W
 from services.price.base.electricity_price_service import ElectricityPriceService
 from services.forecast.base.solar_forecast_service import SolarForecastService
 from services.sunrise.base.sunrise_service import SunriseService
+from services.growatt.growatt_service import GrowattService
 
 logger = logging.getLogger("wattops.planner")
 
@@ -19,11 +20,13 @@ class Planner:
         price_provider: ElectricityPriceService,
         forecast_providers: list[SolarForecastService],
         sunrise_provider: SunriseService,
+        growatt_service: GrowattService,
     ) -> None:
         self.settings = settings
         self.price_provider = price_provider
         self.forecast_providers = forecast_providers
         self.sunrise_provider = sunrise_provider
+        self.growatt_service = growatt_service
         self.timezone = ZoneInfo(settings.local_timezone)
 
     def create_plan(self, planning_date: date) -> Result[list[PlannedAction]]:
@@ -68,6 +71,14 @@ class Planner:
             )
         )
 
+        actions.extend(
+            self._build_ac_charge_action(
+                forecast_kwh=forecast_kwh,
+                prices=electricity_prices,
+                correlation_id=correlation_id,
+            )
+        )
+
         grid_first_actions = self._build_grid_first_action(
             planning_date=planning_date,
             forecast_kwh=forecast_kwh,
@@ -95,7 +106,7 @@ class Planner:
                         type="low_solar_forecast",
                         details={
                             "forecast_kwh": forecast_kwh,
-                            "threshold_kwh": self.settings.solar_output_threshold_kwh,
+                            "threshold_kwh": self.settings.solar_output_export_threshold_kwh,
                         },
                     ),
                     correlation_id=correlation_id,
@@ -181,6 +192,79 @@ class Planner:
             ),
         ]
 
+    def _build_ac_charge_action(
+        self,
+        forecast_kwh: float,
+        prices: list[tuple[datetime, float]],
+        correlation_id: str,
+    ) -> list[PlannedAction]:
+        if forecast_kwh >= self.settings.solar_output_import_threshold_kwh:
+            logger.info(
+                f"Forecast kWh {forecast_kwh:.1f} is at or above import threshold {self.settings.solar_output_import_threshold_kwh:.1f}, skipping AC charge action"
+            )
+            return []
+
+        soc_result = self.growatt_service.get_battery_soc()
+        if not soc_result.success:
+            logger.warning(
+                f"Could not fetch battery SOC: {soc_result.error}, skipping AC charge action"
+            )
+            return []
+
+        battery_soc = soc_result.value
+        if battery_soc >= 25:
+            logger.info(
+                f"Battery SOC {battery_soc}% is at or above threshold 25%, skipping AC charge action"
+            )
+            return []
+
+        cheap_hours = sorted(
+            [
+                item
+                for item in prices
+                if item[1] < self.settings.price_start_import_threshold_dkk_kwh
+            ],
+            key=lambda item: item[0],
+        )
+
+        if len(cheap_hours) < 4:
+            logger.info(
+                f"Only {len(cheap_hours)} price slot(s) below import threshold found, "
+                "need at least 4, skipping AC charge action"
+            )
+            return []
+
+        window_start = cheap_hours[0][0]
+        window_end = cheap_hours[-1][0] + timedelta(minutes=15)
+        lowest_price = min(item[1] for item in cheap_hours)
+
+        return [
+            PlannedAction(
+                command=Command(
+                    name=CommandName.SET_AC_CHARGE_WINDOW,
+                    value=battery_soc,
+                    unit="battery_soc_percent",
+                ),
+                window=Window(
+                    start=window_start.astimezone(self.timezone).isoformat(),
+                    end=window_end.astimezone(self.timezone).isoformat(),
+                ),
+                reason=Reason(
+                    type="low_soc_low_forecast",
+                    details={
+                        "battery_soc_percent": battery_soc,
+                        "soc_threshold_percent": 25,
+                        "forecast_kwh": forecast_kwh,
+                        "forecast_threshold_kwh": self.settings.solar_output_import_threshold_kwh,
+                        "lowest_price_in_window": lowest_price,
+                        "threshold_price": self.settings.price_start_import_threshold_dkk_kwh,
+                    },
+                ),
+                correlation_id=correlation_id,
+                scheduled_at=(window_start - timedelta(minutes=5)).isoformat(),
+            )
+        ]
+
     def _build_grid_first_action(
         self,
         planning_date: date,
@@ -188,14 +272,14 @@ class Planner:
         prices: list[tuple[datetime, float]],
         correlation_id: str,
     ) -> list[PlannedAction]:
-        if forecast_kwh <= self.settings.solar_output_threshold_kwh:
+        if forecast_kwh <= self.settings.solar_output_export_threshold_kwh:
             logger.info(
-                f"Forecast kWh {forecast_kwh:.1f} is below threshold {self.settings.solar_output_threshold_kwh:.1f}, skipping grid-first action"
+                f"Forecast kWh {forecast_kwh:.1f} is below threshold {self.settings.solar_output_export_threshold_kwh:.1f}, skipping grid-first action"
             )
             return []
 
         # Duration scales with expected overproduction.
-        overflow_kwh = forecast_kwh - self.settings.solar_output_threshold_kwh
+        overflow_kwh = forecast_kwh - self.settings.solar_output_export_threshold_kwh
 
         logger.info(
             f"Average forecast kWh: {forecast_kwh}, calculated overflow kWh: {overflow_kwh}"
@@ -263,7 +347,7 @@ class Planner:
                         type="high_solar_forecast",
                         details={
                             "forecast_kwh": forecast_kwh,
-                            "threshold_kwh": self.settings.solar_output_threshold_kwh,
+                            "threshold_kwh": self.settings.solar_output_export_threshold_kwh,
                             "duration_minutes": duration_minutes,
                         },
                     ),
