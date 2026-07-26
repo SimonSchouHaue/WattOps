@@ -115,7 +115,7 @@ class Planner:
             [
                 item
                 for item in prices
-                if item[1] < self.settings.price_export_threshold_dkk_kwh
+                if item[1] < self.settings.price_stop_export_threshold_dkk_kwh
             ],
             key=lambda item: item[0],
         )
@@ -135,7 +135,7 @@ class Planner:
         trigger_price = (
             prices_after[0]
             if prices_after
-            else self.settings.price_export_threshold_dkk_kwh
+            else self.settings.price_stop_export_threshold_dkk_kwh
         )
 
         return [
@@ -153,7 +153,7 @@ class Planner:
                     type="low_price",
                     details={
                         "lowest_price_in_window": lowest_price,
-                        "threshold_price": self.settings.price_export_threshold_dkk_kwh,
+                        "threshold_price": self.settings.price_stop_export_threshold_dkk_kwh,
                     },
                 ),
                 correlation_id=correlation_id,
@@ -173,7 +173,7 @@ class Planner:
                     type="high_price",
                     details={
                         "enable_export_trigger_price": trigger_price,
-                        "threshold_price": self.settings.price_export_threshold_dkk_kwh,
+                        "threshold_price": self.settings.price_stop_export_threshold_dkk_kwh,
                     },
                 ),
                 correlation_id=correlation_id,
@@ -200,7 +200,7 @@ class Planner:
         logger.info(
             f"Average forecast kWh: {forecast_kwh}, calculated overflow kWh: {overflow_kwh}"
         )
-        computed_minutes = int(overflow_kwh * 10)
+        computed_minutes = int(overflow_kwh * 12)
         duration_minutes = max(
             self.settings.grid_first_min_minutes,
             min(self.settings.grid_first_max_minutes, computed_minutes),
@@ -236,7 +236,7 @@ class Planner:
                 dt
                 for dt, price in prices
                 if start <= dt < end
-                and price < self.settings.price_export_threshold_dkk_kwh
+                and price < self.settings.price_stop_export_threshold_dkk_kwh
             ]
         )
         if cheap_in_window:
@@ -276,24 +276,23 @@ class Planner:
                 )
             )
 
-        # Enable grid-first during high-price spikes
-        avg_price = sum(p for _, p in prices) / len(prices) if prices else 0
-        high_price_threshold = avg_price * self.settings.spike_threshold_multiplier
+        # Enable grid-first during high-price windows
         high_price_entries = [
-            (dt, price) for dt, price in prices if price > high_price_threshold
+            (dt, price)
+            for dt, price in prices
+            if price > self.settings.price_start_export_threshold_dkk_kwh
         ]
-        high_price_slots = sorted(dt for dt, _ in high_price_entries)
 
-        # Only trigger if there are at least 2 consecutive high-price slots and the threshold is above 50 time the export threshold
-        if len(high_price_slots) >= 2 and high_price_threshold >= (
-            self.settings.price_export_threshold_dkk_kwh * 50
-        ):
+        if high_price_entries:
+            high_price_slots = sorted(dt for dt, _ in high_price_entries)
             hp_start = high_price_slots[0]
             hp_end = high_price_slots[-1] + timedelta(minutes=15)
             max_price_in_window = max(price for _, price in high_price_entries)
+
             logger.info(
-                f"High price peak at {max_price_in_window:.4f} DKK/kWh, {len(high_price_slots)} price slots with {self.settings.spike_threshold_multiplier} times over average price: {avg_price:.4f} DKK/kWh)"
+                f"High price peak at {max_price_in_window:.4f} DKK/kWh, {len(high_price_slots)} price slots above threshold {self.settings.price_start_export_threshold_dkk_kwh:.4f} DKK/kWh"
             )
+
             result_actions.append(
                 PlannedAction(
                     command=Command(
@@ -306,10 +305,10 @@ class Planner:
                         end=hp_end.astimezone(self.timezone).isoformat(),
                     ),
                     reason=Reason(
-                        type="high_price_spike",
+                        type="high_price",
                         details={
-                            "avg_price_dkk_kwh": avg_price,
                             "high_price_dkk_kwh": max_price_in_window,
+                            "threshold_price_dkk_kwh": self.settings.price_start_export_threshold_dkk_kwh,
                             "slots_above_threshold": len(high_price_slots),
                         },
                     ),

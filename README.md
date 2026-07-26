@@ -103,7 +103,8 @@ Provisioned via Bicep:
 
        // Electricity pricing
        "PRICE_AREA": "DK1", // price area, e.g. DK1 or DK2
-       "PRICE_EXPORT_THRESHOLD_DKK_KWH": "0.10", // limit export when the spot price is below the threshold (DKK/kWh)
+       "PRICE_STOP_EXPORT_THRESHOLD_DKK_KWH": "0.10", // stop export when the spot price drops below the threshold (DKK/kWh)
+       "PRICE_START_EXPORT_THRESHOLD_DKK_KWH": "1.50", // enable grid-first export when the spot price rises above the threshold (DKK/kWh)
 
        // Solar panel setup
        "SOLAR_LATITUDE": "55.0", // latitude where the solar panel is installed

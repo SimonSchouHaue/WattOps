@@ -26,7 +26,8 @@ class Settings:
     dry_run: bool
     planner_queue_name: str
     price_area: str
-    price_export_threshold_dkk_kwh: float
+    price_start_export_threshold_dkk_kwh: float
+    price_stop_export_threshold_dkk_kwh: float
     pvnode_api_key: str
     service_bus_fully_qualified_namespace: str
     solar_latitude: float
@@ -36,7 +37,6 @@ class Settings:
     solar_panel_kwp: float
     solar_panel_tilt: int
     solar_performance_ratio: float
-    spike_threshold_multiplier: float
     solcast_api_key: str
     solcast_resource_id: str
     local_timezone: str
@@ -61,8 +61,11 @@ class Settings:
             dry_run=str_to_bool(os.getenv("DRY_RUN", "true"), default=True),
             planner_queue_name=os.getenv("PLANNER_QUEUE_NAME", "planned-actions"),
             price_area=os.getenv("PRICE_AREA", "DK1"),
-            price_export_threshold_dkk_kwh=float(
-                os.getenv("PRICE_EXPORT_THRESHOLD_DKK_KWH", "0.1")
+            price_start_export_threshold_dkk_kwh=float(
+                os.getenv("PRICE_START_EXPORT_THRESHOLD_DKK_KWH", "1.5")
+            ),
+            price_stop_export_threshold_dkk_kwh=float(
+                os.getenv("PRICE_STOP_EXPORT_THRESHOLD_DKK_KWH", "0.1")
             ),
             pvnode_api_key=os.getenv("PVNODE_API_KEY", ""),
             service_bus_fully_qualified_namespace=os.getenv(
@@ -77,9 +80,6 @@ class Settings:
             solar_panel_kwp=float(os.getenv("SOLAR_PANEL_KWP", "5.0")),
             solar_panel_tilt=int(os.getenv("SOLAR_PANEL_TILT", "35")),
             solar_performance_ratio=float(os.getenv("SOLAR_PERFORMANCE_RATIO", "0.85")),
-            spike_threshold_multiplier=float(
-                os.getenv("SPIKE_THRESHOLD_MULTIPLIER", "3")
-            ),
             solcast_api_key=os.getenv("SOLCAST_API_KEY", ""),
             solcast_resource_id=os.getenv("SOLCAST_RESOURCE_ID", ""),
             local_timezone=os.getenv("LOCAL_TIMEZONE", "UTC"),
