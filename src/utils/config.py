@@ -27,6 +27,7 @@ class Settings:
     price_start_export_threshold_dkk_kwh: float
     price_stop_export_threshold_dkk_kwh: float
     pvnode_api_key: str
+    pvnode_site_id: str
     service_bus_fully_qualified_namespace: str
     solar_latitude: float
     solar_longitude: float
@@ -64,6 +65,7 @@ class Settings:
                 os.getenv("PRICE_STOP_EXPORT_THRESHOLD_DKK_KWH", "0.1")
             ),
             pvnode_api_key=os.getenv("PVNODE_API_KEY", ""),
+            pvnode_site_id=os.getenv("PVNODE_SITE_ID", ""),
             service_bus_fully_qualified_namespace=os.getenv(
                 "ServiceBusConnection__fullyQualifiedNamespace", ""
             ),

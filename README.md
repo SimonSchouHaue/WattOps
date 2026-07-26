@@ -121,6 +121,7 @@ Provisioned via Bicep:
 
        // Forecast providers (provide at least one)
        "PVNODE_API_KEY": "<your-pvnode-api-key>",
+       "PVNODE_SITE_ID": "<your-pvnode-site-id>",
        "SOLCAST_API_KEY": "<your-solcast-api-key>",
        "SOLCAST_RESOURCE_ID": "<your-solcast-resource-id>",
 

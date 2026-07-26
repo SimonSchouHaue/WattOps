@@ -25,6 +25,7 @@ param additionalAppSettings = {
   GROWATT_DISCHARGE_POWER_PERCENT: '50'
   GROWATT_STOP_SOC_PERCENT: '30'
   PVNODE_API_KEY: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=pvnode-api-key)'
+  PVNODE_SITE_ID: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=pvnode-site-id)'
   SOLCAST_RESOURCE_ID: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=solcast-resource-id)'
   SOLCAST_API_KEY: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=solcast-api-key)'
 }

@@ -9,7 +9,7 @@ from services.forecast.base.solar_forecast_service import SolarForecastService
 
 logger = logging.getLogger("wattops.pvnode_forecast_service")
 
-BASE_URL = "https://api.pvnode.com/v1/forecast"
+BASE_URL = "https://api.pvnode.com/v2/forecast"
 
 
 class PVnodeForecastService(SolarForecastService):
@@ -19,21 +19,14 @@ class PVnodeForecastService(SolarForecastService):
     def get_forecast_kwh(self, for_date: date) -> Result[float]:
         s = self.settings
         params = {
-            "latitude": s.solar_latitude,
-            "longitude": s.solar_longitude,
-            "slope": s.solar_panel_tilt,
-            "orientation": s.solar_panel_azimuth,
-            "pv_power_kw": s.solar_panel_kwp,
             "forecast_days": 1,
             "past_days": 0,
-            "required_data": "pv_watts",
         }
         headers = {"Authorization": f"Bearer {s.pvnode_api_key}"}
+        url = f"{BASE_URL}/{s.pvnode_site_id}"
 
         try:
-            response = requests.get(
-                BASE_URL, params=params, headers=headers, timeout=15
-            )
+            response = requests.get(url, params=params, headers=headers, timeout=15)
 
             if not response.ok:
                 return Result.fail(f"HTTP {response.status_code}: {response.text}")
