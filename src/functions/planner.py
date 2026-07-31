@@ -71,14 +71,6 @@ class Planner:
             )
         )
 
-        actions.extend(
-            self._build_ac_charge_action(
-                forecast_kwh=forecast_kwh,
-                prices=electricity_prices,
-                correlation_id=correlation_id,
-            )
-        )
-
         grid_first_actions = self._build_grid_first_action(
             planning_date=planning_date,
             forecast_kwh=forecast_kwh,
@@ -113,6 +105,14 @@ class Planner:
                     scheduled_at=midnight.isoformat(),
                 )
             )
+
+        actions.extend(
+            self._build_ac_charge_action(
+                forecast_kwh=forecast_kwh,
+                prices=electricity_prices,
+                correlation_id=correlation_id,
+            )
+        )
 
         return Result.ok(actions)
 
@@ -284,7 +284,7 @@ class Planner:
         logger.info(
             f"Average forecast kWh: {forecast_kwh}, calculated overflow kWh: {overflow_kwh}"
         )
-        duration_minutes = int(overflow_kwh * 12)
+        duration_minutes = int(overflow_kwh * 15)
 
         sunrise_result = self.sunrise_provider.get_sunrise(planning_date)
 
